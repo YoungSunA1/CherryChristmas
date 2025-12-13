@@ -855,6 +855,17 @@
             }
         }
 
+		// 在 init() 函数末尾或 setupEvents() 中添加：
+		function enableWakeLock() {
+		  if (window.NoSleep) {
+		    const noSleep = new NoSleep();
+		    noSleep.enable();
+		  } else {
+		    // 回退到 Wake Lock API
+		    requestWakeLock(); // 上面定义的函数
+		  }
+		}
+		
         function setupEvents() {
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
@@ -891,6 +902,8 @@
                      STATE.rotation.y += 0.1 * dt; 
                 }
             }
+			
+			enableWakeLock();
 
             mainGroup.rotation.y = STATE.rotation.y;
             mainGroup.rotation.x = STATE.rotation.x;
