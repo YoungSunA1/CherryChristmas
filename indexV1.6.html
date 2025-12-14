@@ -253,17 +253,6 @@
             setupPostProcessing();
             setupEvents();
             await initMediaPipe();
-			
-			// 防止息屏（标准方式）
-			if ('wakeLock' in navigator) {
-			    requestWakeLock(); // 使用上面定义的函数
-			} else if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-			    // iOS 提示用户
-			    const hint = document.getElementById('ios-hint');
-			    if (hint) {
-			        hint.innerHTML += '<br/><small style="opacity:0.8;">💡 建议开启“引导式访问”或保持滑动以防息屏</small>';
-			    }
-			}
             
             const loader = document.getElementById('loader');
             loader.style.opacity = 0;
@@ -558,18 +547,7 @@
                 'asset/images/photo (3).jpg',
                 'asset/images/photo (4).jpg',
                 'asset/images/photo (5).jpg',
-                'asset/images/photo (6).jpg',
-                'asset/images/photo (7).jpg',
-                'asset/images/photo (8).jpg',
-                'asset/images/photo (9).jpg',
-                'asset/images/photo (10).jpg',
-                'asset/images/photo (11).jpg',
-                'asset/images/photo (12).jpg',
-                'asset/images/photo (13).jpg',
-                'asset/images/photo (14).jpg',
-                'asset/images/photo (15).jpg',
-                'asset/images/photo (16).jpg',
-                'asset/images/photo (17).jpg'
+                'asset/images/photo (6).jpg'
                 // 添加更多图片路径...
             ];
 
@@ -886,27 +864,6 @@
 		    // 回退到 Wake Lock API
 		    requestWakeLock(); // 上面定义的函数
 		  }
-		}
-		
-		// 防止手机自动息屏
-		async function requestWakeLock() {
-		    if ('wakeLock' in navigator) {
-		        try {
-		            const wakeLock = await navigator.wakeLock.request('screen');
-		            console.log('✅ Wake Lock 已激活，屏幕将保持常亮');
-		
-		            // 可选：监听释放事件（例如页面隐藏时）
-		            document.addEventListener('visibilitychange', () => {
-		                if (document.visibilityState === 'visible') {
-		                    // 页面重新可见时可选择重新请求（某些浏览器会自动恢复）
-		                }
-		            });
-		        } catch (err) {
-		            console.warn('⚠️ 无法激活 Wake Lock:', err.message);
-		        }
-		    } else {
-		        console.warn('📱 当前浏览器不支持 Screen Wake Lock API');
-		    }
 		}
 		
         function setupEvents() {
