@@ -113,7 +113,7 @@
         }
         
         /* iOS 提示信息 */
-        #ios-hint {
+        /*#ios-hint {
             position: absolute;
             bottom: 20px;
             left: 20px;
@@ -128,6 +128,40 @@
             pointer-events: none;
             display: none;
             line-height: 1.6;
+        }
+		*/
+        
+        /* 音乐控制按钮 */
+        #music-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 12;
+            pointer-events: auto;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .music-btn {
+            background: rgba(20, 20, 20, 0.6); 
+            border: 1px solid rgba(212, 175, 55, 0.4); 
+            color: #d4af37; 
+            padding: 8px 15px; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            font-size: 10px;
+            transition: all 0.4s;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .music-btn:hover { 
+            background: #d4af37; 
+            color: #000; 
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
         }
     </style>
     
@@ -190,12 +224,14 @@
         <button id="play-music" class="music-btn">
             <span>🎵</span> Music ON
         </button>
+		<!--
         <button id="volume-down" class="music-btn">
             <span>🔈</span> Vol -
         </button>
         <button id="volume-up" class="music-btn">
             <span>🔊</span> Vol +
         </button>
+		-->
     </div>
 
     <script type="module">
