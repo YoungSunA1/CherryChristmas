@@ -185,6 +185,19 @@
         <canvas id="webcam-preview"></canvas>
     </div>
 
+    <!-- 音乐控制 -->
+    <div id="music-controls">
+        <button id="play-music" class="music-btn">
+            <span>🎵</span> Music ON
+        </button>
+        <button id="volume-down" class="music-btn">
+            <span>🔈</span> Vol -
+        </button>
+        <button id="volume-up" class="music-btn">
+            <span>🔊</span> Vol +
+        </button>
+    </div>
+
     <script type="module">
         window.addEventListener('error', (e) => {
             console.error('全局错误:', e.error);
@@ -234,12 +247,141 @@
         let handLandmarker, video, webcamCanvas, webcamCtx;
         let caneTexture; 
 
+        // 音乐相关变量
+        let audioContext, musicSource, musicBuffer, musicGainNode;
+        let isMusicPlaying = false;
+        let currentVolume = 0.5;
+        let backgroundAudio;
+
+        // 防止息屏函数
+        async function requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                try {
+                    const wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('✅ Wake Lock 已激活，屏幕将保持常亮');
+
+                    // 监听页面可见性变化，重新请求锁屏
+                    document.addEventListener('visibilitychange', async () => {
+                        if (document.visibilityState === 'visible' && wakeLock.released) {
+                            try {
+                                const newWakeLock = await navigator.wakeLock.request('screen');
+                                console.log('✅ Wake Lock 重新激活');
+                            } catch (err) {
+                                console.warn('⚠️ 重新激活 Wake Lock 失败:', err.message);
+                            }
+                        }
+                    });
+                } catch (err) {
+                    console.warn('⚠️ 无法激活 Wake Lock:', err.message);
+                }
+            } else {
+                console.warn('📱 当前浏览器不支持 Screen Wake Lock API');
+                
+                // iOS 替代方案（hack方式）
+                if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                    preventSleepIOS();
+                }
+            }
+        }
+
+        // iOS 息屏替代方案
+        function preventSleepIOS() {
+            const video = document.createElement('video');
+            video.muted = true;
+            video.playsInline = true;
+            video.loop = true;
+            video.style.display = 'none';
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 1;
+            canvas.height = 1;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, 1, 1);
+            
+            const stream = canvas.captureStream(30);
+            video.srcObject = stream;
+            
+            document.body.appendChild(video);
+            
+            video.play().catch(e => console.warn('iOS 播放 hack 失败:', e));
+            
+            console.log('📱 iOS 息屏预防措施已启动');
+        }
+
+        // 加载音乐资源
+        async function loadMusic() {
+            try {
+                // 创建音频元素
+                backgroundAudio = document.createElement('audio');
+                backgroundAudio.src = 'asset/music/Christmas.mp3';
+                backgroundAudio.loop = true;
+                backgroundAudio.volume = currentVolume;
+                
+                // 预加载音频
+                backgroundAudio.preload = 'auto';
+                
+                // 等待音频可以播放
+                await new Promise((resolve, reject) => {
+                    backgroundAudio.oncanplaythrough = resolve;
+                    backgroundAudio.onerror = () => reject(new Error('音频加载失败'));
+                    
+                    // 设置超时
+                    setTimeout(() => reject(new Error('音频加载超时')), 10000);
+                });
+                
+                console.log('🎵 音乐已加载');
+            } catch (error) {
+                console.warn('⚠️ 音乐加载失败:', error);
+                // 创建一个静音的音频对象作为备用
+                backgroundAudio = document.createElement('audio');
+                backgroundAudio.loop = true;
+                backgroundAudio.volume = 0;
+            }
+        }
+
+        // 播放音乐
+        async function playMusic() {
+            if (backgroundAudio) {
+                try {
+                    await backgroundAudio.play();
+                    isMusicPlaying = true;
+                    document.getElementById('play-music').innerHTML = '<span>🎵</span> Music ON';
+                    console.log('🎵 音乐已播放');
+                } catch (e) {
+                    console.warn('⚠️ 音乐播放失败:', e);
+                    // 如果自动播放失败，可能是浏览器策略限制，用户交互后可以播放
+                    document.getElementById('play-music').innerHTML = '<span>🔇</span> Play Blocked';
+                }
+            }
+        }
+
+        // 暂停音乐
+        function pauseMusic() {
+            if (backgroundAudio) {
+                backgroundAudio.pause();
+            }
+            isMusicPlaying = false;
+            document.getElementById('play-music').innerHTML = '<span>🔇</span> Music OFF';
+        }
+
+        // 调节音量
+        function setVolume(volume) {
+            currentVolume = Math.max(0, Math.min(1, volume)); // 限制在 0-1 之间
+            if (backgroundAudio) {
+                backgroundAudio.volume = currentVolume;
+            }
+        }
+
         async function init() {
             // 检测 iOS 设备
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             if (isIOS) {
                 const hint = document.getElementById('ios-hint');
-                if (hint) hint.style.display = 'block';
+                if (hint) {
+                    hint.innerHTML += '<br/><small style="opacity:0.8;">💡 建议开启"引导式访问"或保持滑动以防息屏</small>';
+                    hint.style.display = 'block';
+                }
             }
             
             initThree();
@@ -264,6 +406,13 @@
 			        hint.innerHTML += '<br/><small style="opacity:0.8;">💡 建议开启“引导式访问”或保持滑动以防息屏</small>';
 			    }
 			}
+            
+            // 加载并播放音乐
+            await loadMusic();
+            // 自动播放音乐（可能因浏览器策略被阻止，用户交互后可播放）
+            setTimeout(async () => {
+                await playMusic();
+            }, 1000);
             
             const loader = document.getElementById('loader');
             loader.style.opacity = 0;
@@ -888,27 +1037,6 @@
 		  }
 		}
 		
-		// 防止手机自动息屏
-		async function requestWakeLock() {
-		    if ('wakeLock' in navigator) {
-		        try {
-		            const wakeLock = await navigator.wakeLock.request('screen');
-		            console.log('✅ Wake Lock 已激活，屏幕将保持常亮');
-		
-		            // 可选：监听释放事件（例如页面隐藏时）
-		            document.addEventListener('visibilitychange', () => {
-		                if (document.visibilityState === 'visible') {
-		                    // 页面重新可见时可选择重新请求（某些浏览器会自动恢复）
-		                }
-		            });
-		        } catch (err) {
-		            console.warn('⚠️ 无法激活 Wake Lock:', err.message);
-		        }
-		    } else {
-		        console.warn('📱 当前浏览器不支持 Screen Wake Lock API');
-		    }
-		}
-		
         function setupEvents() {
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
@@ -917,6 +1045,23 @@
                 composer.setSize(window.innerWidth, window.innerHeight);
             });
             document.getElementById('file-input').addEventListener('change', handleImageUpload);
+            
+            // 音乐控制事件
+            document.getElementById('play-music').addEventListener('click', () => {
+                if (isMusicPlaying) {
+                    pauseMusic();
+                } else {
+                    playMusic();
+                }
+            });
+            
+            document.getElementById('volume-down').addEventListener('click', () => {
+                setVolume(currentVolume - 0.1);
+            });
+            
+            document.getElementById('volume-up').addEventListener('click', () => {
+                setVolume(currentVolume + 0.1);
+            });
             
             // Toggle UI logic - ONLY hide controls, keep title
             window.addEventListener('keydown', (e) => {
@@ -957,6 +1102,3 @@
     </script>
 </body>
 </html>
-
-
-
