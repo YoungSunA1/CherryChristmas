@@ -129,6 +129,38 @@
             display: none;
             line-height: 1.6;
         }
+		
+		#music-controls {
+		            position: absolute;
+		            top: 20px;
+		            left: 20px;
+		            z-index: 12;
+		            pointer-events: auto;
+		            display: flex;
+		            gap: 10px;
+		        }
+		        
+		        .music-btn {
+		            background: rgba(20, 20, 20, 0.6); 
+		            border: 1px solid rgba(212, 175, 55, 0.4); 
+		            color: #d4af37; 
+		            padding: 8px 15px; 
+		            cursor: pointer; 
+		            text-transform: uppercase; 
+		            letter-spacing: 2px; 
+		            font-size: 10px;
+		            transition: all 0.4s;
+		            backdrop-filter: blur(5px);
+		            display: flex;
+		            align-items: center;
+		            gap: 5px;
+		        }
+		        
+		        .music-btn:hover { 
+		            background: #d4af37; 
+		            color: #000; 
+		            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+		        }  
     </style>
     
     <style>
@@ -167,7 +199,7 @@
         <div id="debug-info"></div>
     </div>
     
-    <!-- iOS 权限提示 -->
+    <!-- iOS 权限提示 
     <div id="ios-hint">
         📱 <strong>iOS 用户注意：</strong><br/>
         首次使用需要允许摄像头访问<br/>
@@ -178,6 +210,7 @@
         设置 → Safari → 摄像头 → 允许
         </small>
     </div>
+	-->
 
     <!-- Webcam hidden structure -->
     <div id="webcam-wrapper">
@@ -188,13 +221,13 @@
     <!-- 音乐控制 -->
     <div id="music-controls">
         <button id="play-music" class="music-btn">
-            <span>🎵</span> Music ON
+            <span>🎵</span> M
         </button>
         <button id="volume-down" class="music-btn">
-            <span>🔈</span> Vol -
+            <span>🔈</span> 
         </button>
         <button id="volume-up" class="music-btn">
-            <span>🔊</span> Vol +
+            <span>🔊</span> 
         </button>
     </div>
 
@@ -376,13 +409,13 @@
         async function init() {
             // 检测 iOS 设备
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            if (isIOS) {
-                const hint = document.getElementById('ios-hint');
-                if (hint) {
-                    hint.innerHTML += '<br/><small style="opacity:0.8;">💡 建议开启"引导式访问"或保持滑动以防息屏</small>';
-                    hint.style.display = 'block';
-                }
-            }
+            // if (isIOS) {
+            //     const hint = document.getElementById('ios-hint');
+            //     if (hint) {
+            //         hint.innerHTML += '<br/><small style="opacity:0.8;">💡 建议开启"引导式访问"或保持滑动以防息屏</small>';
+            //         hint.style.display = 'block';
+            //     }
+            // }
             
             initThree();
             setupEnvironment(); 
@@ -740,7 +773,9 @@
 				'asset/images/photo (36).jpg',
 				'asset/images/photo (37).jpg',
 				'asset/images/photo (38).jpg',
-				'asset/images/photo (39).jpg'
+				'asset/images/photo (39).jpg',
+				'asset/images/photo (40).jpg',
+				'asset/images/photo (41).jpg'
                 // 添加更多图片路径...
             ];
 
